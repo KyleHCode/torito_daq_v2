@@ -1,7 +1,7 @@
 #ifndef SAMPLEFRAME_H
 #define SAMPLEFRAME_H
 
-#define MAX_SENSORS 16
+#include "sensorconfig.h"
 #include <stdint.h>
 
 struct SampleFrame {
@@ -10,6 +10,7 @@ struct SampleFrame {
     uint8_t valid_mask;
     uint8_t status_bits;
     int32_t payload[MAX_SENSORS];
+    int16_t raw_adc[MAX_SENSORS];
 };
 
 #endif // SAMPLEFRAME_H

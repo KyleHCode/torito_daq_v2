@@ -13,6 +13,7 @@ private:
     static const float V_MAX;
     static const float PSI_MAX;
     Adafruit_ADS1115 ads;
+    int16_t last_raw_adc;
 
 public:
     bool init();
