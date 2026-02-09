@@ -8,10 +8,8 @@ bool i2c_write(uint8_t i2c_address, const uint8_t *data, size_t length, bool sen
 }
 
 bool i2c_read(uint8_t i2c_address, uint8_t *buffer, size_t length) {
-    Wire.requestFrom(i2c_address, length);
-    if (Wire.available() < length) {
-        return false;
-    }
+    size_t got = Wire.requestFrom((int)i2c_address, (int)length, (int)true);
+    if (got != length) return false;
     for (size_t i = 0; i < length; i++) {
         buffer[i] = Wire.read();
     }
