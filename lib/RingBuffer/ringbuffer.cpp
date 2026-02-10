@@ -5,7 +5,7 @@ RingBuffer::RingBuffer() : head(0), tail(0), count(0), overrun_count(0) {
 }
 
 bool RingBuffer::push(const SampleFrame *frame) {
-    if (count >= RING_BUFFER_SIZE) {  // Direct access, no rb->
+    if (count >= RING_BUFFER_SIZE) {
         overrun_count++;
         return false;
     }
@@ -23,6 +23,10 @@ bool RingBuffer::pop(SampleFrame *frame) {
     tail = (tail + 1) % RING_BUFFER_SIZE;
     count--;
     return true;
+}
+
+uint16_t RingBuffer::get_count() const {
+    return count;
 }
 
 uint32_t RingBuffer::get_overrun_count() const {

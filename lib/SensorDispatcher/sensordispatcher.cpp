@@ -12,12 +12,11 @@ bool sensor_dispatcher_init() {
     return true;
 }
 
-bool sensor_read_dispatch(const SensorDesc &sensor, int32_t &data) {
-    switch (sensor.type) {
-        case SensorType::PRESSURE:
-            return PressureSensor().read(sensor, data);
-        // Add cases for other sensor types here
+bool sensor_read_dispatch(const SensorDesc &sensor, int32_t &data, int16_t &raw_adc) {
+    switch (sensor.sensorType) {
+        case SensorDesc::type::PRESSURE:
+            return g_pressure_sensor.read(sensor, data, raw_adc);
         default:
-            return false; // Unsupported sensor type
+            return false;
     }
 }

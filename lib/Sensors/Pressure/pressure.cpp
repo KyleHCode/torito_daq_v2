@@ -1,6 +1,5 @@
 // pressure.cpp
 #include "pressure.h"
-#include <MuxDriver.h>
 
 // Define static constants
 const float PressureSensor::V_MIN = 0.5f;
@@ -15,15 +14,10 @@ bool PressureSensor::init() {
     return true;
 }
 
-bool PressureSensor::read(const SensorDesc &sensor, int32_t &data) {
-    if (!mux_select(sensor.bus_id, sensor.mux_channel)) {
-        return false;
-    }
+bool PressureSensor::read(const SensorDesc &sensor, int32_t &data, int16_t &raw_adc) {
+    raw_adc = ads.readADC_SingleEnded(sensor.adc_channel);
     
-    int16_t raw = ads.readADC_SingleEnded(sensor.adc_channel);
-    last_raw_adc = raw;
-    
-    float voltage = ads.computeVolts(raw);
+    float voltage = ads.computeVolts(raw_adc);
     float psi = (voltage - V_MIN) * (PSI_MAX / (V_MAX - V_MIN));
     if (psi < 0.0f) psi = 0.0f;
     if (psi > PSI_MAX) psi = PSI_MAX;

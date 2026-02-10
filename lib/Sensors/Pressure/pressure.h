@@ -13,11 +13,10 @@ private:
     static const float V_MAX;
     static const float PSI_MAX;
     Adafruit_ADS1115 ads;
-    int16_t last_raw_adc;
 
 public:
     bool init();
-    bool read(const SensorDesc &sensor, int32_t &data);
+    bool read(const SensorDesc &sensor, int32_t &data, int16_t &raw_adc);
 };
 
 #endif
