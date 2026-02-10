@@ -23,5 +23,11 @@ bool PressureSensor::read(const SensorDesc &sensor, int32_t &data, int16_t &raw_
     if (psi > PSI_MAX) psi = PSI_MAX;
     
     data = (int32_t)(psi * 100.0f);
+    
+    // Debug: check if reading makes sense
+    if (raw_adc == -1 || raw_adc == 0x7FFF || raw_adc == 0) {
+        return false;  // Invalid reading
+    }
+    
     return true;
 }

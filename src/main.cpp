@@ -1,6 +1,7 @@
 // src/main.cpp
 #include <Arduino.h>
 #include <Wire.h>
+#include <hwconfig.h>
 #include <daqloop.h>
 #include <ringbuffer.h>
 #include <sensordispatcher.h>
@@ -14,6 +15,7 @@ void setup() {
     delay(2000);
     Serial.println("DAQ System Starting...");
     
+    // Initialize I2C (Teensy 4.1 uses default pins SDA=18, SCL=19)
     Wire.begin();
     
     // Initialize sensors
@@ -24,6 +26,7 @@ void setup() {
     
     daq_init();
     Serial.println("DAQ Ready!");
+    Serial.println("Seq,S0,S1,S2,S3");
 }
 
 void loop() {
@@ -35,17 +38,17 @@ void loop() {
         next_daq += 50;
     }
     
-    // Print frames from buffer (replaces SD logger for now)
+    // Print all available frames (drain the buffer)
     SampleFrame frame;
-    while (sd_buffer.pop(&frame)) {
-        Serial.print("Seq: "); Serial.print(frame.seq);
-        Serial.print(" | Time: "); Serial.print(frame.timestamp_us);
-        Serial.print(" | Valid: 0x"); Serial.print(frame.valid_mask, HEX);
-        Serial.print(" | Status: 0x"); Serial.print(frame.status_bits, HEX);
-        Serial.print(" | Data: ");
-        for (int i = 0; i < 4; i++) {
-            Serial.print(frame.payload[i]); Serial.print(" ");
-        }
-        Serial.println();
+    if (sd_buffer.pop(&frame)) {
+        Serial.print(frame.seq);
+        Serial.print(",");
+        Serial.print(frame.payload[0]);
+        Serial.print(",");
+        Serial.print(frame.payload[1]);
+        Serial.print(",");
+        Serial.print(frame.payload[2]);
+        Serial.print(",");
+        Serial.println(frame.payload[3]);
     }
 }
