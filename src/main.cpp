@@ -5,6 +5,7 @@
 #include <daqloop.h>
 #include <ringbuffer.h>
 #include <sensordispatcher.h>
+#include <muxdriver.h>
 
 // Define the buffers
 RingBuffer sd_buffer;
@@ -17,6 +18,20 @@ void setup() {
     
     // Initialize I2C (Teensy 4.1 uses default pins SDA=18, SCL=19)
     Wire.begin();
+    
+    // Initialize mux hardware
+    if (!mux_init()) {
+        Serial.println("ERROR: Mux init failed!");
+        while(1) delay(1000);
+    }
+    
+    // Select mux channel for sensor initialization
+    // (All sensors are on channel 0 per sensorconfig.h)
+    if (!mux_select(0, 0)) {
+        Serial.println("ERROR: Mux channel select failed!");
+        while(1) delay(1000);
+    }
+    delay(5);  // Allow mux to stabilize
     
     // Initialize sensors
     if (!sensor_dispatcher_init()) {
