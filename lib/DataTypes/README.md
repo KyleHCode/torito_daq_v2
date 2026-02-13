@@ -3,23 +3,23 @@ SampleFrame
 ===========
 timestamp_us: records the time the frame is initially being made
 seq: the index of the frame
-valid_mask: uses 2 bytes to indicate which sensors send back 
-valid data by setting the bits within the bytes.
-    Ex: Say we have 4 sensors running. if all sensors are good
+valid_mask: uses 2 bytes to indicate which sensors send back
+valid data by setting bits within the bytes.
+    Ex: Say we have 4 sensors running. If all sensors are good
         valid_mask would contain 0x000F. (1111)
-        Lets say that during a read, sensor 2 fails
+        Let's say that during a read, sensor 2 fails
         valid_mask would contain 0x000D. (1101)
         A set bit means the sensor is working.
 status_bits: Will contain specific error codes for various
     states, such as: mux failing resulting in MUX_ERR,
     a sensor failing resulting in an I2C_ERR,
-    a buffer over_run resulting in OVERRUN.
+    a buffer overrun resulting in OVERRUN.
     Each error has a specific binary code.
 payload[]: Contains all calibrated sensor data for each
     specific sensor called during the frame's lifetime
 raw_adc[]: contains all uncalibrated sensor data for each
     specific sensor called during the frame's lifetime.
-    Important for redundancy incase calibration formulas
+    Important for redundancy in case calibration formulas
     within sensor classes are off.
 
 ==========
@@ -34,10 +34,10 @@ enum type - sensorType: enumerator for sensor types, add new
     name to sensor types rather than a list of 0-9.
 bus_id: The bus the sensor is attached to. Mainly here for
     future proofing when we add in new muxes.
-mux_channel: The channel on the bux that connects to the mux.
+mux_channel: The channel on the mux that connects to the mux.
 i2c_address: The address of the sensor on the mux.
 adc_channel: The channel to communicate to the adc.
-period_tecks: The period in which the sensor is read in the
+period_ticks: The period in which the sensor is read in the
     DAQLoop. If the loop is running at 20Hz, then a sensor
     with a tick of 1 is read every 20Hz (50ms). A sensor with
     a period_tick of 5 is read every 250 ms.
