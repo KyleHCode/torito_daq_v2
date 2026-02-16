@@ -2,6 +2,11 @@
 #define DAQLOOP_H
 
 #include <SampleFrame.h>
+#include <ringbuffer.h>
+#include <sensordispatcher.h>
+#include <muxdriver.h>
+#include <sensorconfig.h>
+#include <Arduino.h>
 
 // Status bit flags
 #define MUX_ERR    (1 << 0)

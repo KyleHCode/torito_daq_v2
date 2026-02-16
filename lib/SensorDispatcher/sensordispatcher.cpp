@@ -1,6 +1,4 @@
 #include "sensordispatcher.h"
-#include <pressure.h>
-#include <Arduino.h>
 
 // Sesnor class instances
 PressureSensor g_pressure_sensor;

@@ -6,10 +6,16 @@
 #include <ringbuffer.h>
 #include <sensordispatcher.h>
 #include <muxdriver.h>
+#include <sdwrite.h>
+#include <dispatcherthread.h>
 
 // Define the buffers
+RingBuffer daq_buffer;
 RingBuffer sd_buffer;
 RingBuffer lora_buffer;
+
+// SD writer instance (drains `sd_buffer` and performs block writes)
+SDWrite sdwriter;
 
 void setup() {
     Serial.begin(115200);
@@ -40,6 +46,12 @@ void setup() {
     }
     
     daq_init();
+
+    // Initialize SD writer (attach the sd_buffer the dispatcher pushes into)
+    if (!sdwriter.init(&sd_buffer, "data.bin")) {
+        Serial.println("ERROR: SD writer init failed — continuing without SD logging");
+    }
+
     Serial.println("DAQ Ready!");
     Serial.println("Seq,S0,S1,S2,S3");
 }
@@ -52,18 +64,12 @@ void loop() {
         daq_step();
         next_daq += 50;
     }
-    
-    // Print all available frames (drain the buffer)
-    SampleFrame frame;
-    if (sd_buffer.pop(&frame)) {
-        Serial.print(frame.seq);
-        Serial.print(",");
-        Serial.print(frame.payload[0]);
-        Serial.print(",");
-        Serial.print(frame.payload[1]);
-        Serial.print(",");
-        Serial.print(frame.payload[2]);
-        Serial.print(",");
-        Serial.println(frame.payload[3]);
+    if (!dispatcher_thread_step()) {
+        Serial.println("ERROR: Dispatcher thread step failed! Overflow detetcted!");
     }
+    
+    // Drive SD writer (drains `sd_buffer` and writes in blocks).
+    // NOTE: `sd_buffer` is now owned/consumed by the SD writer —
+    // don't pop it elsewhere (use a debug buffer or peek API for prints).
+    sdwriter.data();
 }

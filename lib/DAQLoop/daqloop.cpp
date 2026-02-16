@@ -1,17 +1,11 @@
 #include "daqloop.h"
-#include <ringbuffer.h>
-#include <sensordispatcher.h>
-#include <muxdriver.h>
-#include <sensorconfig.h>
-#include <Arduino.h>
 
 // Global state
 static uint32_t seq = 0;
 static uint32_t tick = 0;
 
 // External buffers (declared in main)
-extern RingBuffer sd_buffer;
-extern RingBuffer lora_buffer;
+extern RingBuffer daq_buffer;
 
 void daq_init() {
     seq = 0;
@@ -19,7 +13,7 @@ void daq_init() {
 }
 
 void daq_step() {
-    SampleFrame frame;
+    SampleFrame frame{};              // zero-initialize entire struct (clears padding/unused fields)
     frame.seq = seq++;
     frame.timestamp_us = micros();
     frame.valid_mask = 0;
@@ -53,15 +47,9 @@ void daq_step() {
         }
     }
 
-    // Push to SD buffer (every frame)
-    if (!sd_buffer.push(&frame)) {
+    // Push to DAQ buffer (every frame)
+    if (!daq_buffer.push(&frame)) {
         frame.status_bits |= OVERRUN;
-    }
-
-    // Push to LoRa buffer (every 9th frame)
-    static uint32_t lora_counter = 0;
-    if ((lora_counter++ % 9) == 0) {
-        lora_buffer.push(&frame);
     }
 
     tick++;
