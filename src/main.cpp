@@ -67,9 +67,10 @@ void loop() {
     if (!dispatcher_thread_step()) {
         Serial.println("ERROR: Dispatcher thread step failed! Overflow detetcted!");
     }
-    
+
     // Drive SD writer (drains `sd_buffer` and writes in blocks).
     // NOTE: `sd_buffer` is now owned/consumed by the SD writer —
     // don't pop it elsewhere (use a debug buffer or peek API for prints).
     sdwriter.data();
 }
+
