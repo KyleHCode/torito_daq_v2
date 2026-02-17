@@ -4,7 +4,7 @@ bool SDWrite::init(RingBuffer* buffer, const char *fname) {
     sd_buffer = buffer;
     if (fname) filename = fname;
 
-    if (!SD.begin()) {
+    if (!SD.begin(BUILTIN_SDCARD)) {
         Serial.println("SD card initialization failed!");
         return false;
     }
