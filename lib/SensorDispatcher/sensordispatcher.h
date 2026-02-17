@@ -2,7 +2,8 @@
 #define SENSOR_DISPATCHER_H
 
 #include <SensorDesc.h>
-#include <pressure.h>
+#include <lowpressure.h>
+#include <highpressure.h>
 #include <Arduino.h>
 
 bool sensor_dispatcher_init();
