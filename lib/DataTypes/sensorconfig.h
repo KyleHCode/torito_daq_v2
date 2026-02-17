@@ -6,11 +6,12 @@
 #define SENSOR_COUNT 4
 
 // Sensor table - configure your hardware here
+// NOTE: sensorType must match the dispatcher (LOWPRESSURE or HIGHPRESSURE).
 const SensorDesc sensor_table[SENSOR_COUNT] = {
     // id, type, bus_id, mux_channel, i2c_address, adc_channel, period_ticks
     {
         .id = 0,
-        .sensorType = SensorDesc::type::PRESSURE,
+        .sensorType = SensorDesc::type::LOWPRESSURE,
         .bus_id = 0,
         .mux_channel = 0,           // PCA9548A channel 0 (SD0/SC0)
         .i2c_address = 0x48,        // ADS1115 address
@@ -19,7 +20,7 @@ const SensorDesc sensor_table[SENSOR_COUNT] = {
     },
     {
         .id = 1,
-        .sensorType = SensorDesc::type::PRESSURE,
+        .sensorType = SensorDesc::type::LOWPRESSURE,
         .bus_id = 0,
         .mux_channel = 0,
         .i2c_address = 0x48,
@@ -28,7 +29,7 @@ const SensorDesc sensor_table[SENSOR_COUNT] = {
     },
     {
         .id = 2,
-        .sensorType = SensorDesc::type::PRESSURE,
+        .sensorType = SensorDesc::type::HIGHPRESSURE,
         .bus_id = 0,
         .mux_channel = 0,
         .i2c_address = 0x48,
@@ -37,7 +38,7 @@ const SensorDesc sensor_table[SENSOR_COUNT] = {
     },
     {
         .id = 3,
-        .sensorType = SensorDesc::type::PRESSURE,
+        .sensorType = SensorDesc::type::HIGHPRESSURE,
         .bus_id = 0,
         .mux_channel = 0,
         .i2c_address = 0x48,

@@ -1,13 +1,12 @@
-// pressure.h
-#ifndef PRESSURE_H
-#define PRESSURE_H
+// highpressure.h
+#ifndef HIGHPRESSURE_H
+#define HIGHPRESSURE_H
 
 #include <stdint.h>
 #include <Adafruit_ADS1X15.h>
 #include <SensorDesc.h>
 
-
-class PressureSensor {
+class HighPressureSensor {
 private:
     static const float V_MIN;
     static const float V_MAX;
@@ -19,4 +18,4 @@ public:
     bool read(const SensorDesc &sensor, int32_t &data, int16_t &raw_adc);
 };
 
-#endif
+#endif // HIGHPRESSURE_H

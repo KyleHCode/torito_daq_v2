@@ -1,5 +1,4 @@
 #include "muxdriver.h"
-#include <primitives.h>
 
 bool mux_init() {
     // Initialize PCA9548A: disable all channels as known state

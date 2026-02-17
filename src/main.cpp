@@ -6,11 +6,25 @@
 #include <ringbuffer.h>
 #include <sensordispatcher.h>
 #include <muxdriver.h>
+#include <sdwrite.h>
+#include <dispatcherthread.h>
+#include <loramodule.h>
+#include <lorasend.h>
+#include <lora_config.h>
+#include <solenoidreceive.h>
 
 // Define the buffers
+RingBuffer daq_buffer;
 RingBuffer sd_buffer;
 RingBuffer lora_buffer;
 
+// SD writer instance (drains `sd_buffer` and performs block writes)
+SDWrite sdwriter;
+
+// LoRa module + sender
+LoraModule lora_module(0, 0, LORA_SENDER_ADDRESS); // pins ignored on Teensy
+LoraSend lora_sender;
+SolenoidReceive solenoid_receive;
 void setup() {
     Serial.begin(115200);
     delay(2000);
@@ -40,8 +54,25 @@ void setup() {
     }
     
     daq_init();
+
+    // Initialize SD writer (attach the sd_buffer the dispatcher pushes into)
+    if (!sdwriter.init(&sd_buffer, "data.bin")) {
+        Serial.println("ERROR: SD writer init failed — continuing without SD logging");
+    }
+
+    // Initialize LoRa module and sender
+    if (!lora_module.begin()) {
+        Serial.println("WARNING: LoRa module did not respond during init");
+    } else {
+        lora_module.configure(LORA_SENDER_ADDRESS, LORA_BAND, LORA_NETWORK_ID);
+        lora_sender.init(&lora_module, &lora_buffer, LORA_RECEIVER_ADDRESS);
+    }
+    // Initialize SolenoidReceive instance
+    if (!solenoid_receive.init(SOLENOID_I2C_ADDR)) {
+        Serial.println("ERROR: SolenoidReceive init failed!");
+    }
+
     Serial.println("DAQ Ready!");
-    Serial.println("Seq,S0,S1,S2,S3");
 }
 
 void loop() {
@@ -52,110 +83,15 @@ void loop() {
         daq_step();
         next_daq += 50;
     }
-    
-    // Print all available frames (drain the buffer)
-    SampleFrame frame;
-    if (sd_buffer.pop(&frame)) {
-        Serial.print(frame.seq);
-        Serial.print(",");
-        Serial.print(frame.payload[0]);
-        Serial.print(",");
-        Serial.print(frame.payload[1]);
-        Serial.print(",");
-        Serial.print(frame.payload[2]);
-        Serial.print(",");
-        Serial.println(frame.payload[3]);
+    if (!dispatcher_thread_step()) {
+        Serial.println("ERROR: Dispatcher thread step failed! Overflow detetcted!");
     }
-}
-#include <Adafruit_ADS1X15.h>
 
-// ---------------- USER SETTINGS ----------------
-#define TCA_ADDR   0x70   // TCA9548A default (A0/A1/A2 = GND)
-#define ADS_ADDR   0x48   // ADS1115 (ADDR = GND)
-#define MUX_CH     4      // SC4/SD4 corresponds to channel 4
-// ------------------------------------------------
+    // Drive SD writer (drains `sd_buffer` and writes in blocks).
+    // NOTE: `sd_buffer` is now owned/consumed by the SD writer —
+    // don't pop it elsewhere (use a debug buffer or peek API for prints).
+    sdwriter.data();
 
-// Pressure sensor calibration (0–2000 psi, 0.5–4.5 V)
-static const float V_MIN   = 0.5f;
-static const float V_MAX   = 4.5f;
-static const float PSI_MAX = 2000.0f;
-
-Adafruit_ADS1115 ads;
-
-static bool i2cPing(uint8_t addr) {
-  Wire.beginTransmission(addr);
-  return (Wire.endTransmission() == 0);
-}
-
-static bool tcaSelect(uint8_t channel) {
-  if (channel > 7) return false;
-  Wire.beginTransmission(TCA_ADDR);
-  Wire.write(1 << channel);
-  return (Wire.endTransmission() == 0);
-}
-
-static float voltsToPsi(float v) {
-  float psi = (v - V_MIN) * (PSI_MAX / (V_MAX - V_MIN));
-  if (psi < 0.0f) psi = 0.0f;
-  if (psi > PSI_MAX) psi = PSI_MAX;
-  return psi;
-}
-
-void setup() {
-  Serial.begin(115200);
-  delay(1000);
-
-  // Teensy 4.1 default I2C pins:
-  // SDA = 18, SCL = 19
-  Wire.begin();
-
-  // 1) Check mux exists on main I2C bus
-  if (!i2cPing(TCA_ADDR)) {
-    Serial.println("ERROR: TCA9548A not found at 0x70. Check SDA(18)/SCL(19), power, ground, address pins.");
-    while (1) delay(1000);
-  }
-
-  // 2) Select channel 4 (SC4/SD4)
-  if (!tcaSelect(MUX_CH)) {
-    Serial.println("ERROR: Failed to select TCA channel 4.");
-    while (1) delay(1000);
-  }
-
-  // 3) Check ADS exists behind the mux channel
-  if (!i2cPing(ADS_ADDR)) {
-    Serial.println("ERROR: ADS1115 not found on TCA channel 4. Check ADS power/ground/ADDR pin and mux routing.");
-    while (1) delay(1000);
-  }
-
-  // 4) Init ADS + gain for up to ~4.5V
-  if (!ads.begin(ADS_ADDR)) {
-    Serial.println("ERROR: ads.begin() failed.");
-    while (1) delay(1000);
-  }
-  ads.setGain(GAIN_TWOTHIRDS); // supports higher input range for your 0.5–4.5V sensors
-
-  // Header for plotting 4 traces (tab-separated)
-  Serial.println("P0\tP1\tP2\tP3");
-}
-
-void loop() {
-  // Always re-select channel before talking to ADS (good habit)
-  tcaSelect(MUX_CH);
-
-  float psi[4];
-
-  for (int ch = 0; ch < 4; ch++) {
-    int16_t raw = ads.readADC_SingleEnded(ch);
-    // Adafruit helper uses the currently-set gain to compute volts safely
-    float voltage = ads.computeVolts(raw);
-    psi[ch] = voltsToPsi(voltage);
-  }
-
-  // One line, 4 columns => plot 4 lines
-  Serial.print(psi[0], 2); Serial.print('\t');
-  Serial.print(psi[1], 2); Serial.print('\t');
-  Serial.print(psi[2], 2); Serial.print('\t');
-  Serial.println(psi[3], 2);
-
-  delay(50); // ~20 Hz update rate
+    // Attempt to send one pending LoRa frame each loop (if available)
+    lora_sender.send_next();
 }

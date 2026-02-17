@@ -1,17 +1,13 @@
 #include "daqloop.h"
-#include <ringbuffer.h>
-#include <sensordispatcher.h>
-#include <muxdriver.h>
-#include <sensorconfig.h>
-#include <Arduino.h>
 
 // Global state
 static uint32_t seq = 0;
 static uint32_t tick = 0;
+// Last known solenoid/relay code — retain across frames until updated by a successful I2C read.
+static uint16_t last_solenoid_state = 0;
 
 // External buffers (declared in main)
-extern RingBuffer sd_buffer;
-extern RingBuffer lora_buffer;
+extern RingBuffer daq_buffer;
 
 void daq_init() {
     seq = 0;
@@ -19,7 +15,7 @@ void daq_init() {
 }
 
 void daq_step() {
-    SampleFrame frame;
+    SampleFrame frame{};              // zero-initialize entire struct (clears padding/unused fields)
     frame.seq = seq++;
     frame.timestamp_us = micros();
     frame.valid_mask = 0;
@@ -53,15 +49,21 @@ void daq_step() {
         }
     }
 
-    // Push to SD buffer (every frame)
-    if (!sd_buffer.push(&frame)) {
-        frame.status_bits |= OVERRUN;
+    // Read solenoid state and preserve the last successfully-read value across frames.
+    // If the read fails, flag I2C_ERR but still populate the frame with `last_solenoid_state`.
+    {
+        uint16_t cur = 0;
+        if (solenoid_receive.read(cur)) {
+            last_solenoid_state = cur; // update only on successful read
+        } else {
+            frame.status_bits |= I2C_ERR;
+        }
+        frame.solenoid_state = last_solenoid_state;
     }
 
-    // Push to LoRa buffer (every 9th frame)
-    static uint32_t lora_counter = 0;
-    if ((lora_counter++ % 9) == 0) {
-        lora_buffer.push(&frame);
+    // Push to DAQ buffer (every frame)
+    if (!daq_buffer.push(&frame)) {
+        frame.status_bits |= OVERRUN;
     }
 
     tick++;
