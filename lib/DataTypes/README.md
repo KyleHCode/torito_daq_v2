@@ -21,6 +21,8 @@ raw_adc[]: contains all uncalibrated sensor data for each
     specific sensor called during the frame's lifetime.
     Important for redundancy in case calibration formulas
     within sensor classes are off.
+static_asserts: Checking during compile time that the struct contain valid
+    data types for storage. Meaning, no dynamic memory types, no user-defined constructors/destructors or virtual functions and no inheritence.
 
 ==========
 SensorDesc

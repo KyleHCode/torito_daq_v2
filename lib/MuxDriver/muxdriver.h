@@ -2,6 +2,7 @@
 #define MUXDRIVER_H
 
 #include <stdint.h>
+#include <primitives.h>
 
 #define MUX_ADDRESS 0x70
 
