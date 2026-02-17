@@ -6,7 +6,6 @@
 #include <Adafruit_ADS1X15.h>
 #include <SensorDesc.h>
 
-
 class HighPressureSensor {
 private:
     static const float V_MIN;

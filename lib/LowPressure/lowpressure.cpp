@@ -1,12 +1,12 @@
 // pressure.cpp
-#include "pressure.h"
+#include "lowpressure.h"
 
 // Define static constants
-const float PressureSensor::V_MIN = 0.5f;
-const float PressureSensor::V_MAX = 4.5f;
-const float PressureSensor::PSI_MAX = 2000.0f;
+const float LowPressureSensor::V_MIN = 0.5f;
+const float LowPressureSensor::V_MAX = 4.5f;
+const float LowPressureSensor::PSI_MAX = 2000.0f;
 
-bool PressureSensor::init() {
+bool LowPressureSensor::init() {
     if (!ads.begin(0x48)) {
         return false;
     }
@@ -14,7 +14,7 @@ bool PressureSensor::init() {
     return true;
 }
 
-bool PressureSensor::read(const SensorDesc &sensor, int32_t &data, int16_t &raw_adc) {
+bool LowPressureSensor::read(const SensorDesc &sensor, int32_t &data, int16_t &raw_adc) {
     raw_adc = ads.readADC_SingleEnded(sensor.adc_channel);
     
     float voltage = ads.computeVolts(raw_adc);
