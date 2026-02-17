@@ -7,6 +7,9 @@
 #include <muxdriver.h>
 #include <sensorconfig.h>
 #include <Arduino.h>
+#include <solenoidreceive.h>
+
+extern SolenoidReceive solenoid_receive;
 
 // Status bit flags
 #define MUX_ERR    (1 << 0)

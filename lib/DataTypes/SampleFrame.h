@@ -10,6 +10,7 @@ struct SampleFrame {
     uint32_t seq;
     uint8_t valid_mask;
     uint8_t status_bits;
+    uint16_t solenoid_state;
     uint32_t payload[SENSOR_COUNT];
     uint16_t raw_adc[SENSOR_COUNT];
 };

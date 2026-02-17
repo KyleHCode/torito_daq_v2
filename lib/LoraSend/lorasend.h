@@ -32,7 +32,7 @@ private:
     LoraModule* lora_module = nullptr;
     uint8_t dest_address = 0;
 
-    // Our header will be <= 20 bytes (timestamp(4)+seq(4)+valid(1)+status(1)+raw_adc[4]*2=18)
+    // Our header will be <= 20 bytes (timestamp(4)+seq(4)+valid(1)+status(1)+solenoid(2)+raw_adc[4]*2=20)
     static constexpr size_t MAX_SERIALIZED_HEADER = 20;
 };
 
