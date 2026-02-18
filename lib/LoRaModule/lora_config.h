@@ -7,8 +7,8 @@
 // LoRa Network Configuration
 #define LORA_BAND 915000000      // 915 MHz for US
 #define LORA_NETWORK_ID 5        // Must match on all devices
-#define LORA_SENDER_ADDRESS 2    // Address for sender
-#define LORA_RECEIVER_ADDRESS 7  // Address for receiver
+#define LORA_SENDER_ADDRESS 3    // Address for sender
+#define LORA_RECEIVER_ADDRESS 6  // Address for receiver
 
 // AT Command Templates
 #define AT_TEST "AT"

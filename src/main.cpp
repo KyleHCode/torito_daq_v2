@@ -34,23 +34,23 @@ void setup() {
     Wire.begin();
     
     // Initialize mux hardware
-    if (!mux_init()) {
+    while (!mux_init()) {
         Serial.println("ERROR: Mux init failed!");
-        while(1) delay(1000);
+        delay(1000);
     }
     
     // Select mux channel for sensor initialization
     // (All sensors are on channel 0 per sensorconfig.h)
-    if (!mux_select(0, 0)) {
+    while (!mux_select(0, 0)) {
         Serial.println("ERROR: Mux channel select failed!");
-        while(1) delay(1000);
+        delay(1000);
     }
     delay(5);  // Allow mux to stabilize
     
     // Initialize sensors
-    if (!sensor_dispatcher_init()) {
+    while (!sensor_dispatcher_init()) {
         Serial.println("ERROR: Sensor init failed!");
-        while(1) delay(1000);
+        delay(1000);
     }
     
     daq_init();
