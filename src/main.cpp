@@ -73,7 +73,16 @@ void setup() {
     }
 
     Serial.println("DAQ Ready!");
+
+#if ENABLE_PRESSURE_SERIAL
+    // Serial header for pressure columns (P0..)
+    for (int i = 0; i < SENSOR_COUNT; ++i) {
+        Serial.print("P"); Serial.print(i);
+        if (i < SENSOR_COUNT - 1) Serial.print('\t'); else Serial.println();
+    }
+#endif
 }
+
 
 void loop() {
     static uint32_t next_daq = 0;
@@ -81,6 +90,35 @@ void loop() {
     // Run DAQ at 20Hz (50ms)
     if (millis() >= next_daq) {
         daq_step();
+
+#if ENABLE_PRESSURE_SERIAL
+        // --- Serial pressure sensor read (one line per DAQ frame) ---
+        for (int i = 0; i < SENSOR_COUNT; ++i) {
+            const SensorDesc &desc = sensor_table[i];
+            // Ensure MUX is selected for this sensor (DAQ normally does this)
+            if (desc.mux_channel != NO_MUX) {
+                if (!mux_select(desc.bus_id, desc.mux_channel)) {
+                    Serial.print("P"); Serial.print(desc.id); Serial.print(": MUX_ERR");
+                    if (i < SENSOR_COUNT - 1) Serial.print('\t'); else Serial.println();
+                    continue;
+                }
+                delay(1); // small settle time
+            }
+
+            int32_t processed = 0;
+            int16_t raw_adc = 0;
+            if (sensor_read_dispatch(desc, processed, raw_adc)) {
+                float psi = processed / 100.0f; // stored as psi*100
+                Serial.print(psi, 2);
+            } else {
+                Serial.print("ERR");
+            }
+
+            if (i < SENSOR_COUNT - 1) Serial.print('\t'); else Serial.println();
+        }
+        // --- end serial read ---
+#endif
+
         next_daq += 50;
     }
     if (!dispatcher_thread_step()) {

@@ -5,6 +5,11 @@
 
 #define SENSOR_COUNT 4
 
+// Enable printing of pressure data to Serial from `main` (0 = off, 1 = on)
+#ifndef ENABLE_PRESSURE_SERIAL
+#define ENABLE_PRESSURE_SERIAL 0
+#endif
+
 // Sensor table - configure your hardware here
 // NOTE: sensorType must match the dispatcher (LOWPRESSURE or HIGHPRESSURE).
 const SensorDesc sensor_table[SENSOR_COUNT] = {

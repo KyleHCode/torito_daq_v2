@@ -60,6 +60,14 @@ String LoraModule::send_at_command(const char* command, unsigned long timeout) {
             }
         }
     }
+
+    // Update online flag from the response so callers can quickly skip future attempts
+    if (result.indexOf("OK") != -1) {
+        _online = true;
+    } else if (result.length() == 0 || result.indexOf("ERROR") != -1) {
+        _online = false;
+    }
+
     Serial.print("Response: ");
     Serial.println(result);
     return result;
@@ -67,9 +75,13 @@ String LoraModule::send_at_command(const char* command, unsigned long timeout) {
 
 // existing API: send a hex string payload
 bool LoraModule::send_data_hexstr(uint8_t dest_address, String hex_data) {
+    // If module previously proved unreachable, skip immediately to avoid long blocking
+    if (!_online) return false;
+
     char cmd[128];
     snprintf(cmd, sizeof(cmd), "AT+SEND=%d,%d,%s", dest_address, (int)(hex_data.length() / 2), hex_data.c_str());
-    String response = send_at_command(cmd, 2000);
+    // use short timeout to avoid long AT delays on failure
+    String response = send_at_command(cmd, 200);
     return response.indexOf("OK") != -1;
 }
 
@@ -96,7 +108,9 @@ bool LoraModule::send_data_hexstr(uint8_t dest_address, const uint8_t* data, siz
     }
     cmd[pos] = '\0';
 
-    String response = send_at_command(cmd, 2000);
+    // If module is known-unreachable, skip to avoid waiting
+    if (!_online) return false;
+    String response = send_at_command(cmd, 200);
     return response.indexOf("OK") != -1;
 }
 
