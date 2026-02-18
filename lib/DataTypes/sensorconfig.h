@@ -29,7 +29,7 @@ const SensorDesc sensor_table[SENSOR_COUNT] = {
     },
     {
         .id = 2,
-        .sensorType = SensorDesc::type::HIGHPRESSURE,
+        .sensorType = SensorDesc::type::LOWPRESSURE,
         .bus_id = 0,
         .mux_channel = 0,
         .i2c_address = 0x48,
