@@ -22,7 +22,9 @@ RingBuffer lora_buffer;
 SDWrite sdwriter;
 
 // LoRa module + sender
-LoraModule lora_module(0, 0, LORA_SENDER_ADDRESS); // pins ignored on Teensy
+// NOTE: LoRa uses a hardware UART. On Teensy this project uses Serial4 (RX4/TX4).
+// Constructor pins are ignored on Teensy — only the module address is required.
+LoraModule lora_module(LORA_SENDER_ADDRESS);
 LoraSend lora_sender;
 SolenoidReceive solenoid_receive;
 void setup() {
@@ -40,8 +42,8 @@ void setup() {
     }
     
     // Select mux channel for sensor initialization
-    // (All sensors are on channel 0 per sensorconfig.h)
-    while (!mux_select(0, 0)) {
+    // (All sensors are on channel 7 per sensorconfig.h)
+    while (!mux_select(0, 7)) {
         Serial.println("ERROR: Mux channel select failed!");
         delay(1000);
     }
