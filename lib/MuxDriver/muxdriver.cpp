@@ -1,7 +1,7 @@
 #include "muxdriver.h"
 
 bool mux_init() {
-    // Initialize PCA9548A: disable all channels as known state
+    // Initialize TCA9548A: disable all channels as known state
     uint8_t disable_all = 0x00;
     return i2c_write(MUX_ADDRESS, &disable_all, 1);
 }
