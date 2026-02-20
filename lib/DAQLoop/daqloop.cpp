@@ -6,6 +6,7 @@ static uint32_t tick = 0;
 
 // External buffers (declared in main)
 extern RingBuffer daq_buffer;
+extern SolenoidReceive solenoid_receive;
 
 void daq_init() {
     seq = 0;

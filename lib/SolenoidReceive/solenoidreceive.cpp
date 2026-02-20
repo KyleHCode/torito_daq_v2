@@ -1,5 +1,4 @@
 #include "solenoidreceive.h"
-#include <Wire.h>
 
 bool SolenoidReceive::init(uint8_t i2c_address) {
     if (i2c_address == 0) return false; // 0 is not a valid 7-bit I2C address here
@@ -11,8 +10,18 @@ bool SolenoidReceive::init(uint8_t i2c_address) {
 bool SolenoidReceive::read(uint16_t &out_state) {
     if (i2c_address_ == 0) return false;
 
+    // Debug: announce I2C read attempt for the solenoid receiver
+    Serial.print("SolenoidReceive: I2C read attempt addr=0x");
+    if (i2c_address_ < 16) Serial.print("0");
+    Serial.println(i2c_address_, HEX);
+
     size_t got = Wire.requestFrom((int)i2c_address_, (int)2, (int)true);
-    if (got != 2) return false;
+    if (got != 2) {
+        Serial.print("SolenoidReceive: I2C read failed (got ");
+        Serial.print(got);
+        Serial.println(" bytes)");
+        return false;
+    }
 
     uint8_t hi = (uint8_t)Wire.read();
     uint8_t lo = (uint8_t)Wire.read();
@@ -20,5 +29,9 @@ bool SolenoidReceive::read(uint16_t &out_state) {
     // MSB-first: hi = high byte, lo = low byte
     out_state = (uint16_t(hi) << 8) | uint16_t(lo);
     cached_state = out_state;
+
+    Serial.print("SolenoidReceive: I2C read success -> 0x");
+    Serial.println(out_state, HEX);
+
     return true;
 } 
