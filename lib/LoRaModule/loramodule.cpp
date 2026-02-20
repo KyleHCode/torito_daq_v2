@@ -7,7 +7,10 @@ bool LoraModule::begin() {
     lora_serial.begin(LORA_BAUD);
     delay(1000);
     Serial.println("Initializing LoRa Module...");
-    if (send_at_command("AT").indexOf("OK") != -1) {
+    String result = send_at_command("AT");
+    Serial.print("Response: ");
+    Serial.println(result);
+    if (result.indexOf("OK") != -1) {
         Serial.println("LoRa module responding");
         return true;
     } else {
